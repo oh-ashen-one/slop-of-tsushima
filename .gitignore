@@ -1,0 +1,8 @@
+node_modules
+dist
+
+# Ghost of Tsushima reference frames (copyrighted — local only)
+references/
+
+.git
+shots

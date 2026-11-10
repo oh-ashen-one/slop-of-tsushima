@@ -1,0 +1,25 @@
+<!doctype html><html><body style="margin:0">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+const s = new THREE.Scene(); s.background = new THREE.Color(0x303540);
+const c = new THREE.PerspectiveCamera(40, innerWidth/innerHeight, 0.01, 100);
+s.add(new THREE.HemisphereLight(0xbfd4ff, 0x54422a, 1.2));
+const dl = new THREE.DirectionalLight(0xffdcb0, 2.4); dl.position.set(2,3,4); s.add(dl);
+new GLTFLoader().load('/public/assets/ronin.glb', (g) => {
+  s.add(g.scene);
+  const box = new THREE.Box3().setFromObject(g.scene);
+  const size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  window.__INFO = { size: size.toArray(), center: ctr.toArray(), min: box.min.toArray(), max: box.max.toArray() };
+  c.position.set(ctr.x + 2.6, ctr.y + 0.6, ctr.z + 2.6); c.lookAt(ctr);
+  // skeleton report
+  const bones = [];
+  g.scene.traverse(o => { if (o.isBone) bones.push([o.name, o.getWorldPosition(new THREE.Vector3()).toArray().map(v=>+v.toFixed(3))]); });
+  window.__BONES = bones;
+  window.__DONE = true;
+  r.render(s, c);
+}, undefined, (e) => { window.__ERR = String(e && e.message || e); window.__DONE = true; });
+</script></body></html>

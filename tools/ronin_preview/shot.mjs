@@ -1,0 +1,15 @@
+import { createServer } from 'vite';
+import { chromium } from 'playwright';
+const server = await createServer({ root: process.cwd(), logLevel: 'error', server: { port: 0, host: '127.0.0.1' } });
+await server.listen();
+const url = server.resolvedUrls.local[0].replace(/\/$/, '');
+const browser = await chromium.launch({ headless: true, args: ['--use-gl=angle', '--use-angle=metal'] });
+const page = await browser.newPage({ viewport: { width: 720, height: 720 } });
+page.on('console', m => console.log('[page]', m.text()));
+page.on('pageerror', e => console.log('[err]', e.message));
+await page.goto(`${url}/tools/ronin_preview/index.html`, { waitUntil: 'load' });
+await page.waitForFunction(() => window.__DONE === true, null, { timeout: 60000 });
+await page.screenshot({ path: 'shots/ronin_preview.png' });
+console.log(JSON.stringify({ info: await page.evaluate(() => window.__INFO), err: await page.evaluate(() => window.__ERR) }));
+console.log(JSON.stringify(await page.evaluate(() => window.__BONES)));
+await browser.close(); await server.close(); process.exit(0);
